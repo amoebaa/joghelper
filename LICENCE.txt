@@ -1,0 +1,7 @@
+This code (joghelper) is under GPLv3,
+ ( https://www.gnu.org/licenses/gpl-3.0.html ),
+and consists of the following files:
+ joghelper.css
+ joghelper.html
+ joghelper.js
+ LICENCE.txt
