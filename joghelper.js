@@ -1,24 +1,55 @@
-/*
-	<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
-	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-	<script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script>
-*/
 
-// ToDo: create const values, also read from cookies
 const default_start_lat = 61.5;
 const default_start_lon = 23.85;
 const default_start_zoom = 14;
 const good_surfaces = '[surface~"^(wood|unpaved|compacted|fine_gravel|gravel|pebblestone|dirt|earth|ground|woodchips)$"]';
 const maybe_paths = '[highway~"^(footway|path|cycleway|track)$"][surface!=paved]';
 const default_color_good = "rgba(127,63,191,0.5)";
+const default_query = 'leisure=fitness_station';
 
-// var map = L.map('map').setView([61.5, 23.85], 14);
-var map = L.map('map').setView([default_start_lat, default_start_lon], default_start_zoom);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
-{
-	maxZoom: 18,
-	attribution: 'Map data &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors</a>'
-}).addTo(map);
+var jogmap = L.map('map');
+
+$(window).on("load", function() { 
+	start_data = get_local_data();
+	set_map(start_data);
+})
+
+$(window).on("beforeunload", function() { 
+	const query_textfield_value = $("#general_query-textfield").val();
+	const center = jogmap.getCenter();
+	const zoom = jogmap.getZoom();
+	localStorage.setItem('query_string', query_textfield_value);
+	localStorage.setItem('latitude', center.lat);
+	localStorage.setItem('longitude', center.lng);
+	localStorage.setItem('zoom_level', zoom);
+})
+
+
+function get_local_data() {
+	const start_data = new Map();
+	const start_lati = localStorage.getItem('latitude') || default_start_lat;
+	start_data.set('start_lat', start_lati);
+	const start_long = localStorage.getItem('longitude') || default_start_lon;
+	start_data.set('start_lon', start_long);
+	const start_zooms = localStorage.getItem('zoom_level') || default_start_zoom;
+	start_data.set('start_zoom', start_zooms);
+
+	const start_query = localStorage.getItem('query_string');
+	start_query ? $("#general_query-textfield").val(start_query) : 
+		$("#general_query-textfield").val(default_query);
+	// console.log("DEBUG, in get_local_data, start_data is: ", start_data);
+	return start_data;
+}
+
+function set_map(start_data) {
+	jogmap.setView([start_data.get('start_lat'), start_data.get('start_lon')], start_data.get('start_zoom'));
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
+	{
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors</a>'
+	}).addTo(jogmap);
+	// console.log("DEBUG: have tried to initialize jogmap: ", jogmap);
+}
 
 function generalOverpass_api_url(map, overpass_query) 
 {
