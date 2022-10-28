@@ -5,48 +5,56 @@
 */
 
 // ToDo: create const values, also read from cookies
-var map = L.map('map').setView([61.5, 23.85], 14);
-L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
+const default_start_lat = 61.5;
+const default_start_lon = 23.85;
+const default_start_zoom = 14;
+const good_surfaces = '[surface~"^(wood|unpaved|compacted|fine_gravel|gravel|pebblestone|dirt|earth|ground|woodchips)$"]';
+const maybe_paths = '[highway~"^(footway|path|cycleway|track)$"][surface!=paved]';
+const default_color_good = "rgba(127,63,191,0.5)";
+
+// var map = L.map('map').setView([61.5, 23.85], 14);
+var map = L.map('map').setView([default_start_lat, default_start_lon], default_start_zoom);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
 {
 	maxZoom: 18,
-	attribution: 'Map data &copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors</a>'
+	attribution: 'Map data &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors</a>'
 }).addTo(map);
 
-function generalOverpassApiUrl(map, overpassQuery) 
- {
-	var bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
-	var nodeQuery = 'node[' + overpassQuery + '](' + bounds + ');';
-	var wayQuery = 'way[' + overpassQuery + '](' + bounds + ');';
-	var relationQuery = 'relation[' + overpassQuery + '](' + bounds + ');';
-	var query = '?data=[out:json][timeout:15];(' + nodeQuery + wayQuery + relationQuery + ');out body geom;';
-	var baseUrl = 'http://overpass-api.de/api/interpreter';
-	var resultUrl = baseUrl + query;
-	return resultUrl;
+function generalOverpass_api_url(map, overpass_query) 
+{
+	let bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
+	let node_query = 'node[' + overpass_query + '](' + bounds + ');';
+	let way_query = 'way[' + overpass_query + '](' + bounds + ');';
+	let relation_query = 'relation[' + overpass_query + '](' + bounds + ');';
+	let query = '?data=[out:json][timeout:15];(' + node_query + way_query + relation_query + ');out body geom;';
+	let base_url = 'https://overpass-api.de/api/interpreter';
+	let result_url = base_url + query;
+	return result_url;
 }
 
 $("#general_query-button").click(function () {
-	var queryTextfieldValue = $("#general_query-textfield").val();
-	var overpassApiUrl = generalOverpassApiUrl(map, queryTextfieldValue);
+	let queryTextfieldValue = $("#general_query-textfield").val();
+	let overpass_api_url = generalOverpass_api_url(map, queryTextfieldValue);
 	
-	$.get(overpassApiUrl, function (osmDataAsJson) {
-	  var resultAsGeojson = osmtogeojson(osmDataAsJson);
-	  var resultLayer = L.geoJson(resultAsGeojson, {
+	$.get(overpass_api_url, function (osmDataAsJson) {
+	  let resultAsGeojson = osmtogeojson(osmDataAsJson);
+	  let resultLayer = L.geoJson(resultAsGeojson, {
 	    style: function (feature) {
 	      return {color: "#ff00ff"};
 	    },
 	    filter: function (feature, layer) {
-	      var isPolygon = (feature.geometry) && (feature.geometry.type !== undefined) && (feature.geometry.type === "Polygon");
+	      let isPolygon = (feature.geometry) && (feature.geometry.type !== undefined) && (feature.geometry.type === "Polygon");
 	      if (isPolygon) {
 	        feature.geometry.type = "Point";
-	        var polygonCenter = L.latLngBounds(feature.geometry.coordinates[0]).getCenter();
+	        let polygonCenter = L.latLngBounds(feature.geometry.coordinates[0]).getCenter();
 	        feature.geometry.coordinates = [ polygonCenter.lat, polygonCenter.lng ];
 	      }
 	      return true;
 	    },
 	    onEachFeature: function (feature, layer) {
-	      var popupContent = "";
+	      let popupContent = "";
 	      popupContent = popupContent + "<dt>@id</dt><dd>" + feature.properties.type + "/" + feature.properties.id + "</dd>";
-	      var keys = Object.keys(feature.properties.tags);
+	      let keys = Object.keys(feature.properties.tags);
 	      keys.forEach(function (key) {
 	        popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>";
 	      });
@@ -59,13 +67,13 @@ $("#general_query-button").click(function () {
 
 
 // node or way query
-function specificOverpassApiUrl(map, queryVal) 
+function specific_overpass_api_url(map, queryVal) 
 {
-	var bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
+	let bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
 	// ToDo: const values
-	var query = '?data=[out:json][timeout:15];(' + queryVal + '(' + bounds + ');' + ');out body geom;';
-	var baseUrl = 'http://overpass-api.de/api/interpreter';
-	var resultUrl = baseUrl + query;
+	let query = '?data=[out:json][timeout:15];(' + queryVal + '(' + bounds + ');' + ');out body geom;';
+	let baseUrl = 'https://overpass-api.de/api/interpreter';
+	let resultUrl = baseUrl + query;
 	return resultUrl;
 }
 
@@ -75,27 +83,27 @@ $("#soft_roads-button").click(function ()
 	var queryValue = 'surface~"^(wood|unpaved|compacted|fine_gravel|gravel|pebblestone|dirt|earth|ground|woodchips)$"';
 	var overpassApiUrl = specificOverpassApiUrl(map, 'way[' + queryValue + ']');
 	*/
-	var known_good = '[surface~"^(wood|unpaved|compacted|fine_gravel|gravel|pebblestone|dirt|earth|ground|woodchips)$"]';
-	var known_good_OPApiUrl = specificOverpassApiUrl(map, 'way' + known_good);
+	let known_good = good_surfaces;
+	let known_good_OP_api_url = specific_overpass_api_url(map, 'way' + known_good);
 
-	var maybe_ok = '[highway~"^(footway|path|cycleway|track)$"][surface!=paved]';
-	var maybe_ok_OPApiUrl = specificOverpassApiUrl(map, 'way' + maybe_ok);
+	let maybe_ok = maybe_paths;
+	let maybe_ok_OP_api_url = specific_overpass_api_url(map, 'way' + maybe_ok);
 
 	// $.get(overpassApiUrl, function (osmDataAsJson) 
-	$.get(known_good_OPApiUrl, function (osmDataAsJson) 
+	$.get(known_good_OP_api_url, function (osmDataAsJson) 
 	// $.get(maybe_ok_OPApiUrl, function (osmDataAsJson) 
 	{
-		var resultAsGeojson = osmtogeojson(osmDataAsJson);
-		var resultLayer = L.geoJson(resultAsGeojson, 
+		let resultAsGeojson = osmtogeojson(osmDataAsJson);
+		let resultLayer = L.geoJson(resultAsGeojson, 
 		{
 			style: function (feature) 
-				{ return {color: "rgba(95,31,191,0.75)"}; },
+				{ return {color: default_color_good}; },
 				// { return {color: "rgba(0,127,191,0.75)"}; },
 			onEachFeature: function (feature, layer) 
 			{
-				var popupContent = "";
+				let popupContent = "";
 				popupContent = popupContent + "<dt>@id</dt><dd>" + feature.properties.type + "/" + feature.properties.id + "</dd>";
-				var keys = Object.keys(feature.properties.tags);
+				let keys = Object.keys(feature.properties.tags);
 				keys.forEach(function (key) 
 				{
 					popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>";
