@@ -1,3 +1,7 @@
+const default_overpass_url = 'https://overpass-api.de/api/interpreter';
+// Overpass query stuff:
+const default_opq_settings = 'data=[out:json][timeout:15]';
+const default_opq_statements = 'out body geom';
 
 const default_start_lat = 61.5;
 const default_start_lon = 23.85;
@@ -70,10 +74,8 @@ function generalOverpass_api_url(map, overpass_query)
 	let node_query = 'node[' + overpass_query + '](' + bounds + ');';
 	let way_query = 'way[' + overpass_query + '](' + bounds + ');';
 	let relation_query = 'relation[' + overpass_query + '](' + bounds + ');';
-	let query = '?data=[out:json][timeout:15];(' + node_query + way_query + relation_query + ');out body geom;';
-	let base_url = 'https://overpass-api.de/api/interpreter';
-	let result_url = base_url + query;
-	return result_url;
+	let query = '?' + default_opq_settings + ';(' + node_query + way_query + relation_query + ');' + default_opq_statements + ';';
+	return default_overpass_url + query;
 }
 
 $("#general_query-button").click(function () {
@@ -114,11 +116,8 @@ $("#general_query-button").click(function () {
 function specific_overpass_api_url(map, queryVal) 
 {
 	let bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
-	// ToDo: const values
-	let query = '?data=[out:json][timeout:15];(' + queryVal + '(' + bounds + ');' + ');out body geom;';
-	let baseUrl = 'https://overpass-api.de/api/interpreter';
-	let resultUrl = baseUrl + query;
-	return resultUrl;
+	let query = '?' + default_opq_settings + ';(' + queryVal + '(' + bounds + ');' + ');' + default_opq_statements + ';';
+	return default_overpass_url + query;
 }
 
 $("#soft_roads-button").click(function () 
