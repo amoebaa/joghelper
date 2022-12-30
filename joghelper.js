@@ -71,7 +71,7 @@ function generalOverpass_api_url(map, overpass_query)
 
 $("#general_query-button").click(function () {
 	let queryTextfieldValue = $("#general_query-textfield").val();
-	let overpass_api_url = generalOverpass_api_url(map, queryTextfieldValue);
+	let overpass_api_url = generalOverpass_api_url(jogmap, queryTextfieldValue);
 	
 	$.get(overpass_api_url, function (osmDataAsJson) {
 	  let resultAsGeojson = osmtogeojson(osmDataAsJson);
@@ -98,7 +98,7 @@ $("#general_query-button").click(function () {
 	      popupContent = popupContent + "</dl>"
 	      layer.bindPopup(popupContent);
 	    }
-	  }).addTo(map);
+	  }).addTo(jogmap);
 	});
 });
 
@@ -121,10 +121,10 @@ $("#soft_roads-button").click(function ()
 	var overpassApiUrl = specificOverpassApiUrl(map, 'way[' + queryValue + ']');
 	*/
 	let known_good = good_surfaces;
-	let known_good_OP_api_url = specific_overpass_api_url(map, 'way' + known_good);
+	let known_good_OP_api_url = specific_overpass_api_url(jogmap, 'way' + known_good);
 
 	let maybe_ok = maybe_paths;
-	let maybe_ok_OP_api_url = specific_overpass_api_url(map, 'way' + maybe_ok);
+	let maybe_ok_OP_api_url = specific_overpass_api_url(jogmap, 'way' + maybe_ok);
 
 	// $.get(overpassApiUrl, function (osmDataAsJson) 
 	$.get(known_good_OP_api_url, function (osmDataAsJson) 
@@ -148,6 +148,6 @@ $("#soft_roads-button").click(function ()
 				popupContent = popupContent + "</dl>"
 				layer.bindPopup(popupContent);
 			}
-		}).addTo(map);
+		}).addTo(jogmap);
 	});
 });
