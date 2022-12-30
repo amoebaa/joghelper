@@ -55,6 +55,13 @@ $(window).on("beforeunload", function() {
 	save_local_data();
 })
 
+$("#overpass-api-controls").mouseover(function (event) {
+	jogmap.dragging.disable();
+});
+
+$("#overpass-api-controls").mouseout(function (event) {
+	jogmap.dragging.enable();
+});
 
 // Query for feature from text field
 function generalOverpass_api_url(map, overpass_query) 
