@@ -9,23 +9,8 @@ const default_query = 'leisure=fitness_station';
 
 var jogmap = L.map('map');
 
-$(window).on("load", function() { 
-	start_data = get_local_data();
-	set_map(start_data);
-})
-
-$(window).on("beforeunload", function() { 
-	const query_textfield_value = $("#general_query-textfield").val();
-	const center = jogmap.getCenter();
-	const zoom = jogmap.getZoom();
-	localStorage.setItem('query_string', query_textfield_value);
-	localStorage.setItem('latitude', center.lat);
-	localStorage.setItem('longitude', center.lng);
-	localStorage.setItem('zoom_level', zoom);
-})
-
-
-function get_local_data() {
+// Loading and saving local data
+function load_local_data() {
 	const start_data = new Map();
 	const start_lati = localStorage.getItem('latitude') || default_start_lat;
 	start_data.set('start_lat', start_lati);
@@ -37,7 +22,7 @@ function get_local_data() {
 	const start_query = localStorage.getItem('query_string');
 	start_query ? $("#general_query-textfield").val(start_query) : 
 		$("#general_query-textfield").val(default_query);
-	// console.log("DEBUG, in get_local_data, start_data is: ", start_data);
+	// console.log("DEBUG, in load_local_data, start_data is: ", start_data);
 	return start_data;
 }
 
@@ -51,6 +36,27 @@ function set_map(start_data) {
 	// console.log("DEBUG: have tried to initialize jogmap: ", jogmap);
 }
 
+function save_local_data() {
+	const query_textfield_value = $("#general_query-textfield").val();
+	const center = jogmap.getCenter();
+	const zoom = jogmap.getZoom();
+	localStorage.setItem('query_string', query_textfield_value);
+	localStorage.setItem('latitude', center.lat);
+	localStorage.setItem('longitude', center.lng);
+	localStorage.setItem('zoom_level', zoom);
+}
+
+$(window).on("load", function() { 
+	start_data = load_local_data();
+	set_map(start_data);
+})
+
+$(window).on("beforeunload", function() { 
+	save_local_data();
+})
+
+
+// Query for feature from text field
 function generalOverpass_api_url(map, overpass_query) 
 {
 	let bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
@@ -97,7 +103,7 @@ $("#general_query-button").click(function () {
 });
 
 
-// node or way query
+// Soft roads query
 function specific_overpass_api_url(map, queryVal) 
 {
 	let bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
