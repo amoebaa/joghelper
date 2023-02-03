@@ -15,6 +15,28 @@ var softroads = L.layerGroup([]);
 var popups = L.layerGroup([]);
 var jogmap = L.map('map', { layers: [softroads, popups] });
 
+// Events from window
+$(window).on("load", function() { 
+	start_data = load_local_data();
+	set_map(start_data);
+})
+
+$(window).on("beforeunload", function() { 
+	save_local_data();
+})
+
+$("#overpass-api-controls").mouseover(
+	function (event) { jogmap.dragging.disable(); });
+
+$("#overpass-api-controls").mouseout(
+	function (event) { jogmap.dragging.enable(); });
+
+$("#general_query-button").click(get_query_and_display_popups);
+
+$("#soft_roads-button").click(get_soft_roads); 
+
+$("#clear-button").click(clear_fetched_layers);
+
 // Loading and saving local data
 function load_local_data() {
 	const start_data = new Map();
@@ -26,8 +48,7 @@ function load_local_data() {
 	start_data.set('start_zoom', start_zooms);
 
 	const start_query = localStorage.getItem('query_string');
-	start_query ? $("#general_query-textfield").val(start_query) : 
-		$("#general_query-textfield").val(default_query);
+	start_query ? $("#general_query-textfield").val(start_query) : $("#general_query-textfield").val(default_query);
 	// console.log("DEBUG, in load_local_data, start_data is: ", start_data);
 	return start_data;
 }
@@ -52,22 +73,6 @@ function save_local_data() {
 	localStorage.setItem('zoom_level', zoom);
 }
 
-$(window).on("load", function() { 
-	start_data = load_local_data();
-	set_map(start_data);
-})
-
-$(window).on("beforeunload", function() { 
-	save_local_data();
-})
-
-$("#overpass-api-controls").mouseover(function (event) {
-	jogmap.dragging.disable();
-});
-
-$("#overpass-api-controls").mouseout(function (event) {
-	jogmap.dragging.enable();
-});
 
 // Query for feature from text field
 function generalOverpass_api_url(map, overpass_query) 
@@ -80,38 +85,41 @@ function generalOverpass_api_url(map, overpass_query)
 	return default_overpass_url + query;
 }
 
-$("#general_query-button").click(function () {
+function get_query_and_display_popups() 
+{
+	if (!jogmap) { return; }
 	let queryTextfieldValue = $("#general_query-textfield").val();
 	let overpass_api_url = generalOverpass_api_url(jogmap, queryTextfieldValue);
 	
-	$.get(overpass_api_url, function (osmDataAsJson) {
-	  let resultAsGeojson = osmtogeojson(osmDataAsJson);
-	  let resultLayer = L.geoJson(resultAsGeojson, {
-	    style: function (feature) {
-	      return {color: "#ff00ff"};
-	    },
-	    filter: function (feature, layer) {
-	      let isPolygon = (feature.geometry) && (feature.geometry.type !== undefined) && (feature.geometry.type === "Polygon");
-	      if (isPolygon) {
-	        feature.geometry.type = "Point";
-	        let polygonCenter = L.latLngBounds(feature.geometry.coordinates[0]).getCenter();
-	        feature.geometry.coordinates = [ polygonCenter.lat, polygonCenter.lng ];
-	      }
-	      return true;
-	    },
-	    onEachFeature: function (feature, layer) {
-	      let popupContent = "";
-	      popupContent = popupContent + "<dt>@id</dt><dd>" + feature.properties.type + "/" + feature.properties.id + "</dd>";
-	      let keys = Object.keys(feature.properties.tags);
-	      keys.forEach(function (key) {
-	        popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>";
-	      });
-	      popupContent = popupContent + "</dl>"
-	      layer.bindPopup(popupContent);
-	    }
-	  }).addTo(popups);
+	$.get(overpass_api_url, function (osmDataAsJson) 
+	{
+		let resultAsGeojson = osmtogeojson(osmDataAsJson);
+		let resultLayer = L.geoJson(resultAsGeojson, {
+			style: function (feature) { return {color: "#ff00ff"}; },
+			filter: function (feature, layer) 
+			{
+				let isPolygon = (feature.geometry) && (feature.geometry.type !== undefined) && (feature.geometry.type === "Polygon");
+				if (isPolygon) 
+				{
+					feature.geometry.type = "Point";
+					let polygonCenter = L.latLngBounds(feature.geometry.coordinates[0]).getCenter();
+					feature.geometry.coordinates = [ polygonCenter.lat, polygonCenter.lng ];
+				}
+				return true;
+			},
+			onEachFeature: function (feature, layer) 
+			{
+				let popupContent = "";
+				popupContent = popupContent + "<dt>@id</dt><dd>" + feature.properties.type + "/" + feature.properties.id + "</dd>";
+				let keys = Object.keys(feature.properties.tags);
+				keys.forEach(function (key) 
+					{ popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>"; });
+				popupContent = popupContent + "</dl>"
+				layer.bindPopup(popupContent);
+			}
+		}).addTo(popups);
 	});
-});
+}
 
 
 // Soft roads query
@@ -122,45 +130,39 @@ function specific_overpass_api_url(map, queryVal)
 	return default_overpass_url + query;
 }
 
-$("#soft_roads-button").click(function () 
+function get_soft_roads() 
 {
-	/*  Orig:
-	var queryValue = 'surface~"^(wood|unpaved|compacted|fine_gravel|gravel|pebblestone|dirt|earth|ground|woodchips)$"';
-	var overpassApiUrl = specificOverpassApiUrl(map, 'way[' + queryValue + ']');
-	*/
 	let known_good = good_surfaces;
 	let known_good_OP_api_url = specific_overpass_api_url(jogmap, 'way' + known_good);
 
 	let maybe_ok = maybe_paths;
 	let maybe_ok_OP_api_url = specific_overpass_api_url(jogmap, 'way' + maybe_ok);
 
-	// $.get(overpassApiUrl, function (osmDataAsJson) 
 	$.get(known_good_OP_api_url, function (osmDataAsJson) 
-	// $.get(maybe_ok_OPApiUrl, function (osmDataAsJson) 
 	{
 		let resultAsGeojson = osmtogeojson(osmDataAsJson);
 		let resultLayer = L.geoJson(resultAsGeojson, 
 		{
 			style: function (feature) 
 				{ return {color: default_color_good}; },
-				// { return {color: "rgba(0,127,191,0.75)"}; },
 			onEachFeature: function (feature, layer) 
 			{
 				let popupContent = "";
 				popupContent = popupContent + "<dt>@id</dt><dd>" + feature.properties.type + "/" + feature.properties.id + "</dd>";
 				let keys = Object.keys(feature.properties.tags);
 				keys.forEach(function (key) 
-				{
-					popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>";
-				});
+					{ popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>"; });
 				popupContent = popupContent + "</dl>"
 				layer.bindPopup(popupContent);
 			}
 		}).addTo(softroads);
 	});
-});
+};
 
-$("#clear-button").click(function () {
+
+// Misc. small functions
+function clear_fetched_layers() 
+{
 	softroads.clearLayers();
 	popups.clearLayers();
-});
+};
