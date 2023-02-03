@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Example: Overpass-API with Leaflet.js</title>
-  	<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
+	<head>
+		<title>Example: Overpass-API with Leaflet.js</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
 
-    <link rel="stylesheet" href="joghelper.css" />
-  </head>
-  <body>
-    <div id="map">
+		<link rel="stylesheet" href="joghelper.css" />
+	</head>
+	<body>
+		<div id="map">
+			<div class="leaflet-control-container">
+				<div class="leaflet-top leaflet-right">
+				<div id="overpass-api-controls" class="leaflet-bar leaflet-control">
+					<input id="general_query-textfield" size="20">
+					<input id="general_query-button" type="button" value="Get">
+					<BR/>
+					<input id="soft_roads-button" type="button" value="Soft roads">
+					<input id="clear-button" type="button" value="Clear fetched">
+				</div>
+				</div>
+			</div>
+		</div>
+	
+		<script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
+		<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+		<script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script>
 
-      <div class="leaflet-control-container">
-        <div class="leaflet-top leaflet-right">
-          <div id="overpass-api-controls" class="leaflet-bar leaflet-control">
-            <input id="general_query-textfield" size="20">
-            <input id="general_query-button" type="button" value="Get">
-            <BR/>
-            <input id="soft_roads-button" type="button" value="Soft roads">
-          </div>
-        </div>
-      </div>
-    
-    </div>
- 
-	<script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
-	<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script>
-
-    <SCRIPT type="text/javascript" src="joghelper.js"></SCRIPT>
-  </body>
+		<SCRIPT type="text/javascript" src="joghelper.js"></SCRIPT>
+	</body>
 </html>

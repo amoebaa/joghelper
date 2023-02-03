@@ -11,7 +11,9 @@ const maybe_paths = '[highway~"^(footway|path|cycleway|track)$"][surface!=paved]
 const default_color_good = "rgba(127,63,191,0.5)";
 const default_query = 'leisure=fitness_station';
 
-var jogmap = L.map('map');
+var softroads = L.layerGroup([]);
+var popups = L.layerGroup([]);
+var jogmap = L.map('map', { layers: [softroads, popups] });
 
 // Loading and saving local data
 function load_local_data() {
@@ -107,7 +109,7 @@ $("#general_query-button").click(function () {
 	      popupContent = popupContent + "</dl>"
 	      layer.bindPopup(popupContent);
 	    }
-	  }).addTo(jogmap);
+	  }).addTo(popups);
 	});
 });
 
@@ -154,6 +156,11 @@ $("#soft_roads-button").click(function ()
 				popupContent = popupContent + "</dl>"
 				layer.bindPopup(popupContent);
 			}
-		}).addTo(jogmap);
+		}).addTo(softroads);
 	});
+});
+
+$("#clear-button").click(function () {
+	softroads.clearLayers();
+	popups.clearLayers();
 });
